@@ -1,0 +1,23 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": ["src"],
+        "excludes": [
+            "*/Entity/*",
+            "*/Controller/*",
+            "*/Command/*",
+            "Kernel.php"
+        ]
+    },
+    "logs": {
+        "text": "var/infection.log",
+        "summary": "var/infection-summary.log"
+    },
+    "minMsi": 80,
+    "minCoveredMsi": 90,
+    "testFrameworkOptions": "--testsuite=unit",
+    "phpUnit": {
+        "configDir": "."
+    },
+    "timeout": 30
+}

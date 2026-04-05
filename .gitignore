@@ -1,0 +1,62 @@
+# Symfony
+/vendor/
+/var/
+/.env.local
+/.env.*.local
+/public/bundles/
+/config/reference.php
+
+# IDE
+/.idea/
+/.vscode/
+.phpantom.toml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# TypeScript build output (compiled from assets/ts/)
+/assets/js/
+
+# Node/Bun
+/node_modules/
+bun.lockb
+
+# Coverage & testing
+/coverage/
+.phpunit.result.cache
+infection.log
+
+# Backup
+/backup/
+
+# Planning files (root-level, for active development)
+/task_plan.md
+/progress.md
+/findings.md
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> symfony/asset-mapper ###
+/public/assets/
+/assets/vendor/
+###< symfony/asset-mapper ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###

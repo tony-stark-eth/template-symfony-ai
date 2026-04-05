@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+{% block title %}Items{% endblock %}
+{% block body %}
+<div class="space-y-4">
+    <h1 class="text-2xl font-bold">Items</h1>
+
+    {% if items is empty %}
+        <div class="alert alert-info">
+            <span>No items yet. Run <code>bin/console app:seed-example</code> to create demo data.</span>
+        </div>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            <td>{{ item.id }}</td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.description ?? '-' }}</td>
+                            <td><time class="timeago" datetime="{{ item.createdAt|date('c') }}">{{ item.createdAt|date('Y-m-d H:i') }}</time></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

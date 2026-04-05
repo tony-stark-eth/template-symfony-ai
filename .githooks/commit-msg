@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Conventional commits pattern
+PATTERN="^(feat|fix|refactor|test|docs|chore|style|perf|ci|build|revert)(\(.+\))?: .{1,}"
+
+if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
+    echo "ERROR: Commit message does not follow Conventional Commits format."
+    echo ""
+    echo "Expected: <type>[optional scope]: <description>"
+    echo "Types: feat, fix, refactor, test, docs, chore, style, perf, ci, build, revert"
+    echo ""
+    echo "Examples:"
+    echo "  feat: add feed health monitoring"
+    echo "  fix(source): correct error count reset logic"
+    echo "  test: add unit tests for scoring service"
+    echo ""
+    echo "Your message: $COMMIT_MSG"
+    exit 1
+fi

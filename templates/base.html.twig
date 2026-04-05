@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Symfony AI Template{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.23/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block stylesheets %}{% endblock %}
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'night';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</head>
+<body class="min-h-screen bg-base-200">
+    {% include 'components/_flash_messages.html.twig' %}
+
+    <div class="navbar bg-base-100 shadow-lg sticky top-0 z-50">
+        <div class="navbar-start">
+            <div class="dropdown">
+                <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+                    </svg>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <li><a href="{{ path('app_items') }}">Items</a></li>
+                </ul>
+            </div>
+            <a href="{{ path('app_items') }}" class="btn btn-ghost text-xl">Symfony AI Template</a>
+        </div>
+        <div class="navbar-center hidden lg:flex">
+            {# Add search or navigation here #}
+        </div>
+        <div class="navbar-end gap-2">
+            <button id="theme-toggle" class="btn btn-ghost btn-circle" title="Toggle theme">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+            </button>
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+                    <div class="bg-neutral text-neutral-content rounded-full w-10">
+                        <span class="text-sm">{{ app.user ? app.user.userIdentifier|first|upper : '?' }}</span>
+                    </div>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    {% if app.user %}
+                        <li><a href="{{ path('app_logout') }}">Logout</a></li>
+                    {% else %}
+                        <li><a href="{{ path('app_login') }}">Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex">
+        {% block sidebar %}
+        <aside class="hidden lg:block w-64 p-4 bg-base-100 min-h-[calc(100vh-4rem)]">
+            <div class="menu">
+                <li class="menu-title">Navigation</li>
+                <li><a href="{{ path('app_items') }}">Items</a></li>
+            </div>
+        </aside>
+        {% endblock %}
+
+        <main class="flex-1 p-4 lg:p-6">
+            {% block body %}{% endblock %}
+        </main>
+    </div>
+
+    {% block javascripts %}
+        {{ importmap('app') }}
+    {% endblock %}
+    <script src="/js/theme-toggle.js" defer></script>
+    <script src="/js/timeago.js" defer></script>
+</body>
+</html>
