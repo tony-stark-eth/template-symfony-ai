@@ -33,6 +33,13 @@ bun.lockb
 .phpunit.result.cache
 infection.log
 
+# Claude Code
+.claude/worktrees/
+.claude/settings.local.json
+
+# Code review graph
+/.code-review-graph/
+
 # Backup
 /backup/
 

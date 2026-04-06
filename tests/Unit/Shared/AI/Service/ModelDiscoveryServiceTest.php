@@ -10,6 +10,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
@@ -56,7 +57,7 @@ final class ModelDiscoveryServiceTest extends TestCase
         ], JSON_THROW_ON_ERROR);
 
         $client = new MockHttpClient(new MockResponse($responseBody));
-        $service = new ModelDiscoveryService($client, new ArrayAdapter(), new NullLogger());
+        $service = new ModelDiscoveryService($client, new ArrayAdapter(), new MockClock(), new NullLogger());
 
         $models = $service->discoverFreeModels();
 
@@ -97,6 +98,7 @@ final class ModelDiscoveryServiceTest extends TestCase
         $service = new ModelDiscoveryService(
             $client,
             new ArrayAdapter(),
+            new MockClock(),
             new NullLogger(),
             'blocked-model',
         );
@@ -132,7 +134,7 @@ final class ModelDiscoveryServiceTest extends TestCase
         };
 
         $client = new MockHttpClient($factory);
-        $service = new ModelDiscoveryService($client, new ArrayAdapter(), new NullLogger());
+        $service = new ModelDiscoveryService($client, new ArrayAdapter(), new MockClock(), new NullLogger());
 
         $service->discoverFreeModels();
         $service->discoverFreeModels();
@@ -145,7 +147,7 @@ final class ModelDiscoveryServiceTest extends TestCase
         $client = new MockHttpClient(new MockResponse('', [
             'error' => 'timeout',
         ]));
-        $service = new ModelDiscoveryService($client, new ArrayAdapter(), new NullLogger());
+        $service = new ModelDiscoveryService($client, new ArrayAdapter(), new MockClock(), new NullLogger());
 
         // Three failures should open circuit breaker
         $service->discoverFreeModels();

@@ -101,6 +101,7 @@
         "shipmonk/phpstan-rules": "*",
         "symfony/browser-kit": "8.0.*",
         "symfony/css-selector": "8.0.*",
+        "symfony/maker-bundle": "^1.67",
         "symfony/panther": "*",
         "symfony/phpunit-bridge": "*",
         "symplify/easy-coding-standard": "*",
