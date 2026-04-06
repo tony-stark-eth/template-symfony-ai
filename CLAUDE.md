@@ -115,6 +115,59 @@ src/
 - `.claude/coding-typescript.md` -- TypeScript conventions
 - `.claude/testing.md` -- Testing & code quality
 - `.claude/architecture.md` -- Architecture reference
+- `docs/common-patterns.md` -- Common patterns and custom make commands
+
+## Specialized Agents
+
+| Agent | File | Purpose |
+|-------|------|---------|
+| `architect` | `.claude/agents/architect.md` | Architecture decisions, pattern selection, bounded contexts |
+| `product-owner` | `.claude/agents/product-owner.md` | Feature prioritization, requirements, user stories |
+| `senior-developer` | `.claude/agents/senior-developer.md` | Implementation, PHP+TypeScript, Symfony expertise |
+| `qa-specialist` | `.claude/agents/qa-specialist.md` | Testing, code review, quality gates |
+
+## Slash Commands
+
+| Command | Description |
+|---------|-------------|
+| `/quality` | Run full quality pipeline, iteratively fix until green |
+| `/fix-issue <number>` | Fetch GitHub issue, implement, test, PR -- end to end |
+| `/review` | Review current branch using QA Specialist agent |
+
+## Agent Handoff Workflow
+
+For multi-step features, agents communicate through structured files in `.claude/handoff/`:
+
+| File | Writer | Reader | Purpose |
+|------|--------|--------|---------|
+| `ARCHITECT-BRIEF.md` | architect | senior-developer, qa-specialist | What to build |
+| `REVIEW-REQUEST.md` | senior-developer | qa-specialist | What was built |
+| `REVIEW-FEEDBACK.md` | qa-specialist | senior-developer, architect | Review verdict |
+| `BUILD-LOG.md` | architect | all | Step history + known gaps |
+| `SESSION-CHECKPOINT.md` | architect | all | Cross-session resume state |
+
+Flow: architect writes brief -> senior-developer builds -> qa-specialist reviews -> architect deploys.
+
+## Token Discipline -- Always Active
+
+```
+Is this in a skill or memory?   -> Trust it. Skip the file read.
+Is this speculative?            -> Kill the tool call.
+Can calls run in parallel?      -> Parallelize them.
+Output > 20 lines you won't use -> Route to subagent.
+About to restate what user said -> Delete it.
+```
+
+Grep before Read. Never read a whole file to find one thing.
+
+## Workflow Expectations
+
+- Run `make quality` after every code change -- do not consider a task complete until it passes
+- Run `make test` before committing -- all tests must pass
+- One issue per branch -- do not bundle unrelated changes
+- Scope lock: when you find unrelated issues during work, log them in `docs/todo/` or create a GitHub issue -- do not fix inline
+- Use `make sf c="make:entity"` to scaffold entities -- never write entity + repository files manually
+- Always spawn implementation agents in foreground, never background (they need tool approval)
 
 ## Hard Rules
 
@@ -125,4 +178,5 @@ src/
 - No YAML for Symfony config -- PHP format only
 - No `time()` / `date()` / `strtotime()` -- use `ClockInterface`
 - Interface-first: all service boundaries defined by interface
+- No direct `EntityManagerInterface` in services/handlers -- use repository interfaces
 - Conventional Commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
