@@ -30,6 +30,8 @@ final class NameParserTest extends TestCase
         yield 'simple' => ['Article/Url', 'Article', 'Url'];
         yield 'with spaces' => [' Source/FeedUrl ', 'Source', 'FeedUrl'];
         yield 'long context' => ['Notification/AlertUrgency', 'Notification', 'AlertUrgency'];
+        yield 'multiple slashes preserved in name' => ['Context/Sub/Path', 'Context', 'Sub/Path'];
+        yield 'spaces around slash' => [' Context / Name ', 'Context', 'Name'];
     }
 
     public function testRejectsNonStringInput(): void
