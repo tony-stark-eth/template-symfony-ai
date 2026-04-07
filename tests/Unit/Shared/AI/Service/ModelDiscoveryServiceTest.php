@@ -14,6 +14,7 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[CoversClass(ModelDiscoveryService::class)]
 final class ModelDiscoveryServiceTest extends TestCase
@@ -31,10 +32,30 @@ final class ModelDiscoveryServiceTest extends TestCase
     public function testDiscoversFreeModels(): void
     {
         $client = new MockHttpClient(new MockResponse($this->makeApiResponse([
-            ['id' => 'free-model-1', 'context_length' => 32768, 'prompt' => '0', 'completion' => '0'],
-            ['id' => 'paid-model', 'context_length' => 32768, 'prompt' => '0.001', 'completion' => '0.002'],
-            ['id' => 'free-small', 'context_length' => 4096, 'prompt' => '0', 'completion' => '0'],
-            ['id' => 'free-model-2', 'context_length' => 16384, 'prompt' => '0', 'completion' => '0'],
+            [
+                'id' => 'free-model-1',
+                'context_length' => 32768,
+                'prompt' => '0',
+                'completion' => '0',
+            ],
+            [
+                'id' => 'paid-model',
+                'context_length' => 32768,
+                'prompt' => '0.001',
+                'completion' => '0.002',
+            ],
+            [
+                'id' => 'free-small',
+                'context_length' => 4096,
+                'prompt' => '0',
+                'completion' => '0',
+            ],
+            [
+                'id' => 'free-model-2',
+                'context_length' => 16384,
+                'prompt' => '0',
+                'completion' => '0',
+            ],
         ])));
 
         $logger = $this->createMock(LoggerInterface::class);
@@ -57,8 +78,18 @@ final class ModelDiscoveryServiceTest extends TestCase
     public function testFilterBlockedModels(): void
     {
         $client = new MockHttpClient(new MockResponse($this->makeApiResponse([
-            ['id' => 'good-model', 'context_length' => 32768, 'prompt' => '0', 'completion' => '0'],
-            ['id' => 'blocked-model', 'context_length' => 32768, 'prompt' => '0', 'completion' => '0'],
+            [
+                'id' => 'good-model',
+                'context_length' => 32768,
+                'prompt' => '0',
+                'completion' => '0',
+            ],
+            [
+                'id' => 'blocked-model',
+                'context_length' => 32768,
+                'prompt' => '0',
+                'completion' => '0',
+            ],
         ])));
 
         $service = new ModelDiscoveryService(
@@ -81,7 +112,12 @@ final class ModelDiscoveryServiceTest extends TestCase
     {
         $callCount = 0;
         $body = $this->makeApiResponse([
-            ['id' => 'cached-model', 'context_length' => 32768, 'prompt' => '0', 'completion' => '0'],
+            [
+                'id' => 'cached-model',
+                'context_length' => 32768,
+                'prompt' => '0',
+                'completion' => '0',
+            ],
         ]);
 
         $factory = static function () use (&$callCount, $body): MockResponse {
@@ -112,10 +148,12 @@ final class ModelDiscoveryServiceTest extends TestCase
 
     public function testCircuitBreakerOpensAfterThreeFailures(): void
     {
-        $client = new MockHttpClient(new MockResponse('', ['error' => 'timeout']));
+        $client = new MockHttpClient(new MockResponse('', [
+            'error' => 'timeout',
+        ]));
 
         $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects(self::exactly(3))->method('warning');
+        $logger->expects(self::exactly(4))->method('warning');
 
         $service = new ModelDiscoveryService($client, $this->cache, $this->clock, $logger);
 
@@ -152,7 +190,7 @@ final class ModelDiscoveryServiceTest extends TestCase
         $this->cache->save($breakerItem);
 
         // API should NOT be called
-        $client = $this->createMock(\Symfony\Contracts\HttpClient\HttpClientInterface::class);
+        $client = $this->createMock(HttpClientInterface::class);
         $client->expects(self::never())->method('request');
 
         $logger = $this->createMock(LoggerInterface::class);
@@ -163,7 +201,9 @@ final class ModelDiscoveryServiceTest extends TestCase
         $models = $service->discoverFreeModels();
 
         self::assertCount(1, $models);
-        self::assertSame('cached-fallback', $models->first()?->value);
+        $first = $models->first();
+        self::assertInstanceOf(ModelId::class, $first);
+        self::assertSame('cached-fallback', $first->value);
     }
 
     public function testCircuitBreakerTransitionsToHalfOpenAfterResetPeriod(): void
@@ -181,7 +221,12 @@ final class ModelDiscoveryServiceTest extends TestCase
 
         // API should be called (half-open probe)
         $body = $this->makeApiResponse([
-            ['id' => 'recovered-model', 'context_length' => 32768, 'prompt' => '0', 'completion' => '0'],
+            [
+                'id' => 'recovered-model',
+                'context_length' => 32768,
+                'prompt' => '0',
+                'completion' => '0',
+            ],
         ]);
         $client = new MockHttpClient(new MockResponse($body));
 
@@ -193,7 +238,9 @@ final class ModelDiscoveryServiceTest extends TestCase
         $models = $service->discoverFreeModels();
 
         self::assertCount(1, $models);
-        self::assertSame('recovered-model', $models->first()?->value);
+        $first = $models->first();
+        self::assertInstanceOf(ModelId::class, $first);
+        self::assertSame('recovered-model', $first->value);
     }
 
     public function testHalfOpenProbeFailureOpensBreaker(): void
@@ -210,7 +257,9 @@ final class ModelDiscoveryServiceTest extends TestCase
         $this->cache->save($breakerItem);
 
         // Probe fails
-        $client = new MockHttpClient(new MockResponse('', ['error' => 'still down']));
+        $client = new MockHttpClient(new MockResponse('', [
+            'error' => 'still down',
+        ]));
 
         $logger = $this->createMock(LoggerInterface::class);
         // debug for half-open + warning for failure + warning for breaker open
@@ -229,7 +278,9 @@ final class ModelDiscoveryServiceTest extends TestCase
 
     public function testFailureLogsCountAndThreshold(): void
     {
-        $client = new MockHttpClient(new MockResponse('', ['error' => 'timeout']));
+        $client = new MockHttpClient(new MockResponse('', [
+            'error' => 'timeout',
+        ]));
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('warning')
@@ -237,7 +288,7 @@ final class ModelDiscoveryServiceTest extends TestCase
                 'Model discovery failed ({count}/{threshold}): {error}',
                 self::callback(static fn (array $ctx): bool => $ctx['count'] === 1
                     && $ctx['threshold'] === 3
-                    && str_contains($ctx['error'], 'timeout')),
+                    && str_contains((string) $ctx['error'], 'timeout')),
             );
 
         $service = new ModelDiscoveryService($client, $this->cache, $this->clock, $logger);
@@ -246,13 +297,18 @@ final class ModelDiscoveryServiceTest extends TestCase
 
     public function testOpenBreakerLogsResetDuration(): void
     {
-        $client = new MockHttpClient(new MockResponse('', ['error' => 'timeout']));
+        $client = new MockHttpClient(new MockResponse('', [
+            'error' => 'timeout',
+        ]));
 
         $warningCalls = [];
         $logger = $this->createMock(LoggerInterface::class);
         $logger->method('warning')
             ->willReturnCallback(static function (string $msg, array $ctx) use (&$warningCalls): void {
-                $warningCalls[] = ['msg' => $msg, 'ctx' => $ctx];
+                $warningCalls[] = [
+                    'msg' => $msg,
+                    'ctx' => $ctx,
+                ];
             });
 
         $service = new ModelDiscoveryService($client, $this->cache, $this->clock, $logger);
@@ -281,7 +337,7 @@ final class ModelDiscoveryServiceTest extends TestCase
         $breakerItem->expiresAfter(172800);
         $this->cache->save($breakerItem);
 
-        $client = $this->createMock(\Symfony\Contracts\HttpClient\HttpClientInterface::class);
+        $client = $this->createMock(HttpClientInterface::class);
         $client->expects(self::never())->method('request');
 
         $service = new ModelDiscoveryService($client, $this->cache, $this->clock, $this->createMock(LoggerInterface::class));
