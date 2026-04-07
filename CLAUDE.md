@@ -89,7 +89,8 @@ src/
 ## AI Integration
 
 - **Primary model**: `openrouter/free` -- auto-routes to best available free model
-- **Fallback chain**: `ModelFailoverPlatform` (PlatformInterface decorator) chains free -> minimax -> glm -> gpt-oss -> qwen -> nemotron
+- **Fallback chain**: `ModelFailoverPlatform` (PlatformInterface decorator) chains free -> minimax -> glm -> gpt-oss -> qwen -> nemotron -> optional paid model
+- **Paid fallback**: `OPENROUTER_PAID_FALLBACK_MODEL` env var appends a low-cost paid model (e.g. `google/gemini-2.5-flash-lite`) to the end of the failover chain. Empty by default.
 - **Circuit breaker**: `ModelDiscoveryService` -- 3 consecutive failures -> 24h fallback to cached model list
 - **Quality tracking**: `ModelQualityTracker` -- cache-backed acceptance/rejection stats per model
 - **Model stats**: `app:ai-stats` command shows model quality metrics
@@ -106,6 +107,7 @@ src/
 | `ADMIN_PASSWORD_HASH` | Bcrypt/argon2 hash | (demo hash) |
 | `OPENROUTER_API_KEY` | OpenRouter API key for AI | (optional) |
 | `OPENROUTER_BLOCKED_MODELS` | Comma-separated blocked model IDs | (empty) |
+| `OPENROUTER_PAID_FALLBACK_MODEL` | Paid model appended to failover chain (e.g. `google/gemini-2.5-flash-lite`) | (empty) |
 | `NOTIFIER_CHATTER_DSN` | Notifier transport DSN | `null://null` |
 | `MESSENGER_TRANSPORT_DSN` | Messenger transport DSN | `doctrine://default` |
 

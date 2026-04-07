@@ -27,12 +27,17 @@ final class ModelFailoverPlatform implements PlatformInterface
 
     /**
      * @param list<string> $fallbackModels Models to try after the requested model fails
+     * @param string $paidFallbackModel Optional paid model appended after free models (from OPENROUTER_PAID_FALLBACK_MODEL env var)
      */
     public function __construct(
         private readonly PlatformInterface $innerPlatform,
         array $fallbackModels = [],
+        private readonly string $paidFallbackModel = '',
         private readonly LoggerInterface $logger = new NullLogger(),
     ) {
+        if ($this->paidFallbackModel !== '') {
+            $fallbackModels[] = $this->paidFallbackModel;
+        }
         $this->fallbackModels = $fallbackModels;
     }
 
@@ -48,6 +53,10 @@ final class ModelFailoverPlatform implements PlatformInterface
                 // Force eager evaluation — DeferredResult throws on asText(), not invoke()
                 $result->asText();
 
+                // Capture the actual model used (OpenRouter resolves openrouter/free to a real model)
+                $actualModel = $result->getRawResult()->getData()['model'] ?? $candidateModel;
+                $result->getMetadata()->add('actual_model', $actualModel);
+
                 return $result;
             } catch (\Throwable $e) {
                 $lastException = $e;
@@ -55,6 +64,11 @@ final class ModelFailoverPlatform implements PlatformInterface
                     'model' => $candidateModel,
                     'error' => $e->getMessage(),
                 ]);
+
+                // Rate limiting affects the entire provider — don't waste time trying other models
+                if (str_contains($e->getMessage(), 'Rate limit')) {
+                    break;
+                }
             }
         }
 
