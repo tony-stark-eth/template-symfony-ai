@@ -54,9 +54,30 @@ Build exactly what was specified. When you find unrelated issues, log them in `d
 Before considering work complete, ask yourself:
 1. Would the QA Specialist flag anything in this diff?
 2. Does `make quality` pass? (ECS + PHPStan max + Rector)
-3. Do `make test` pass?
-4. Did I update tests for changed behavior?
-5. Did I update CLAUDE.md / docs if the change affects conventions?
+3. Does `make test-unit` pass? (use this during development -- fast, saves tokens)
+4. Does `make test` pass? (run ONCE before final commit -- includes integration/functional)
+5. Does `make infection` pass? (run before submitting -- catches MSI failures early, saves a CI round)
+6. Did I update tests for changed behavior?
+7. Did I update CLAUDE.md / docs if the change affects conventions?
+8. **Mutation testing**: will my tests kill mutants? (see checklist below)
+
+### Token Efficiency Rules
+
+- Use `make test-unit` during iteration, not `make test` -- unit tests are 10x faster with 10x less output
+- Run `make test` only once before the final commit
+- Run `make infection` before submitting -- a CI mutation failure costs ~20K tokens to fix
+- Don't read files for style reference -- conventions are in `.claude/testing.md` and `.claude/coding-php.md`
+
+### Mutation Testing Checklist (check before submitting)
+
+Read `.claude/testing.md` "Writing mutation-resistant tests" for the full table. Key rules:
+
+- [ ] **Side-effect services mocked with expects()** -- loggers, trackers, notifiers use `createMock()` + `expects(self::once())`, NOT `NullLogger` or `createStub()`
+- [ ] **Logger context verified** -- `self::callback(fn(array $ctx) => $ctx['key'] === 'value')` on every logger call
+- [ ] **Null paths tested** -- every `??` coalesce and nullable parameter has a test with `null` input
+- [ ] **Multibyte strings** -- if code uses `mb_*` functions, at least one test uses characters where `mb_strlen !== strlen` (e.g. `'ä'`, `'über'`)
+- [ ] **Boundary values** -- numeric comparisons like `> 90` tested with exactly 90 and 91
+- [ ] **All return paths asserted** -- early returns, exception catches, fallback paths each have a test that verifies the specific return value
 
 ## Available Tools
 
@@ -78,10 +99,12 @@ make sf c="make:domain-exception"    # Exception with named constructor
 make sf c="make:enum"                # String-backed enum
 make sf c="make:dto"                 # Readonly DTO
 
-# Quality
+# Quality (token-efficient order)
 make ecs-fix               # Fix coding standards
 make quality               # ECS + PHPStan + Rector (must pass)
-make test                  # All tests must pass
+make test-unit             # Unit tests -- use during development (fast, small output)
+make test                  # All tests -- run ONCE before final commit only
+make infection             # Mutation testing -- run before submitting to catch MSI failures early
 ```
 
 ## Hard Rules

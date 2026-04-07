@@ -20,6 +20,17 @@ services:
       - host.docker.internal:host-gateway
     tty: true
 
+  # Uncomment and customize for Messenger workers
+  # worker:
+  #   image: ${IMAGES_PREFIX:-}app-php-dev
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./:/app
+  #   environment:
+  #     DATABASE_URL: ${DATABASE_URL}
+  #     APP_DEBUG: "0"  # Avoids TraceableEventDispatcher crash in Symfony 8
+  #   command: ["php", "bin/console", "messenger:consume", "async", "--time-limit=3600", "--memory-limit=128M", "-vv"]
+
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
