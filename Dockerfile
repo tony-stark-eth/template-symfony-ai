@@ -1,7 +1,9 @@
 #syntax=docker/dockerfile:1
 
 # Versions
-FROM dunglas/frankenphp:1-php8.4 AS frankenphp_upstream
+# Pinned to 1.12: with 1.13 the dev container exits right after loading the Caddyfile (exit 1, no log line),
+# so `docker compose up --wait` reports it unhealthy. Lift the pin once 1.13 starts cleanly in CI.
+FROM dunglas/frankenphp:1.12-php8.4 AS frankenphp_upstream
 
 # The different stages of this Dockerfile are meant to be built into separate images
 # https://docs.docker.com/build/building/multi-stage/#stop-at-a-specific-build-stage

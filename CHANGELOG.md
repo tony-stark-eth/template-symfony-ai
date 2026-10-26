@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CI broken by base image drift**: `dunglas/frankenphp:1-php8.4` moved to FrankenPHP 1.13, where the dev container exits on start. Pinned the base image to `1.12-php8.4`
 - **Architecture tests never ran**: the phpat rule classes were not registered with the `phpat.test` tag in `phpstan.neon`, so PHPStan never checked them. Registered both; verified with a planted violation. The naming rule now excludes Maker commands (`MakeDomainException` is a command, not an exception)
 
 ## [1.0.0] - 2026-04-05
