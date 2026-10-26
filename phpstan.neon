@@ -46,6 +46,13 @@ parameters:
             superclassToSuffixMapping: []
 
 services:
+    # phpat only runs rule classes registered with this tag; without it the architecture tests silently never fire
+    -
+        class: App\Tests\Architecture\LayerDependencyTest
+        tags: [phpat.test]
+    -
+        class: App\Tests\Architecture\NamingConventionTest
+        tags: [phpat.test]
     -
         class: ShipMonk\PHPStan\Rule\ForbidCustomFunctionsRule
         tags: [phpstan.rules.rule]

@@ -171,6 +171,13 @@ Grep before Read. Never read a whole file to find one thing.
 - Use `make sf c="make:entity"` to scaffold entities -- never write entity + repository files manually
 - Always spawn implementation agents in foreground, never background (they need tool approval)
 
+## Guardrails
+
+- `.claude/settings.json` -- deny list (force push, `rm -rf`, `sudo`, credential paths) plus the `bash-guard.sh` hook, which blocks what the deny list can't express and names the safe alternative
+- `.claude/hooks/bash-guard.test.sh` -- regression cases for the hook, runs in CI; add a case for every false positive
+- `tests/Unit/Meta/InstructionBudgetTest.php` -- CLAUDE.md stays under 12 KB; move detail into `.claude/*.md`
+- Architecture rules (`tests/Architecture/`) only run when registered in `phpstan.neon` with the `phpat.test` tag; prove a new rule once with a planted violation
+
 ## Hard Rules
 
 - No `DateTime` -- use `DateTimeImmutable` via `ClockInterface` only

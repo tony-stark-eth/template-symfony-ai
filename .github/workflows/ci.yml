@@ -25,6 +25,14 @@ jobs:
 
   # --- No DB needed (parallel after build) ---
 
+  claude-guard:
+    name: Claude Code guard hook
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - run: bash .claude/hooks/bash-guard.test.sh
+
   ecs:
     name: ECS
     runs-on: ubuntu-latest
